@@ -1,5 +1,30 @@
 <template>
 <div>
+
+	<div class="col-xs-12 col-md-12">
+		<div class="list-inline list-group panel-body" v-if="hasSortings">
+			<li>
+				<strong>Ordernar por:</strong>
+			</li>
+			<li v-for="(dir, order) in sorting">
+				<a href="#" class="badge badge-primary badge-icon" @click.stop.prevent="removeSorting(order)"><i class="fa fa-times" aria-hidden="true"></i><span>{{order}}</span></a>
+			</li>
+		</div>
+	</div>
+  <input type="text" class="form-control input-lg" v-model="search" placeholder="Search..." v-if="searchForm" v-autofocus>
+	<div class="col-xs-12 col-md-12">
+		<div class="list-inline list-group" v-if="hasFilters">
+			<li>
+				<strong>Filtrar por:</strong>
+			</li>
+			<li v-for="(filter, prop) in filters">
+				<div class="input-group">
+          <div class="input-group-addon">{{ prop }}</div>
+          <input type="text" v-model="f.value" class="form-control" placeholder="Filter value" v-for="f in filter">
+        </div>
+			</li>
+		</div>
+	</div>
 	<table :class="table.classes" cellspacing="0" width="100%">
 	    <thead>
 	        <tr>
@@ -9,7 +34,7 @@
 	    				<label for="" style="padding:0"></label>
 	    			</div>
 	    		</th>
-	            <th v-for="th in headings" @click.stop="setOrder(th.name, $event)">
+	            <th v-for="th in fields" @click.stop="sort(th, $event)" class="text-capitalize">
 	            	{{ th.label }}
 	            	<span v-if="sorting[th.name]">
 	            		<i class="fa" :class="sorting[th.name] === 'desc' ? 'fa-arrow-down':'fa-arrow-up'"></i>
@@ -56,23 +81,35 @@
 
 <script>
 import orderingMixin from './mixins/ordering'
+import filteringMixin from './mixins/filtering'
 import paginationMixin from './mixins/pagination'
+import dropdown from '../button/dropdown'
+//import Filter from './models/Filter'
+// TODO: v-once & keep-alive
 
 export default {
-	mixins:[paginationMixin, orderingMixin],
+	mixins:[paginationMixin, orderingMixin, filteringMixin],
+  directives: {
+    'autofocus': {
+      inserted: function (el) {
+        el.focus()
+      }
+    }
+  },
 	props: {
 		data: Array,
-		headings: Array,
+		columns: Array,
 		options: {
-	      type: Object,
-	      default: function () {
-	        return {
-	        	bulkSelection: true,
-	        	checkOnClick: true,
-	        	perPage: 15
-	        }
-	      }
-	    },		
+      type: Object,
+      default: function () {
+        return {
+        	bulkSelection: true,
+        	checkOnClick: true,
+        	perPage: 15
+        }
+      }
+    },
+    customFilters: Array
 	},
 	data () {
 		return {
@@ -80,23 +117,25 @@ export default {
 				classes: 'datatable table table-striped no-margin primary'
 			},
 			checkedItems: [],
-			filters: []
+      searchForm: false
 		}
 	},
 	computed: {
 		collection () {
-			if (this.filters.length || this.hasSortings) {
-				let data; // or should I use this.data instead?
-				if (this.hasSortings) { // Order first
-					data = this.sortedData;
-				}
-				else { // Apply filters later
-					console.log('CONCHA')
-				}
-				return this.paginate(data);
-			}
-			return this.paginate(this.data);
-		}
+			return this.paginate(this.filteredData);
+		},
+    fields () {
+      let columns = {};
+      this._.each(this.columns, (column) => {
+        columns[column.name] = this._.merge({
+          label: column.label ? column.label : column.name,
+          sortable: true,
+          indexable: true
+        }, column);
+      });
+      console.log(columns);
+      return columns;
+    }
 	},
 	methods: {
 		checkItem (value) { // toggle
@@ -117,7 +156,13 @@ export default {
 			if (this.options.bulkSelection && this.options.checkOnClick) {
 				this.checkItem(index);
 			}
-		}
+		},
+    toggleSearch () {
+      return this.searchForm = !this.searchForm;
+    }
+	},
+	components: {
+		dropdown
 	},
 	mounted () {
 		//console.log(this, this.perPage, this.data)

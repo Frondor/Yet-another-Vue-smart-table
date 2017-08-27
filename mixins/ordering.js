@@ -19,11 +19,16 @@ export default {
 			return this.orderBy.length
 		},
 		sortedData () {
+      if (!this.hasSortings) {
+        return this.data;
+      }
 			return this._.orderBy(this.data, this.orderBy, this.orderSort);
 		}
 	},
 	methods: {
-		setOrder (prop, event) {
+		sort (column, event) {
+      if (!column.sortable) return;
+      let prop = column.name;
 			if (this.sorting[prop]) {
 				this.$set(this.sorting, prop, this.sorting[prop] === 'asc' ? 'desc' : 'asc');
 			} else {
@@ -33,7 +38,7 @@ export default {
 				this.$set(this.sorting, prop, 'asc');
 			}
 		},
-		removeOrder (prop) {
+		removeSorting (prop) {
 			this.$delete(this.sorting, prop);
 		}
 	}
