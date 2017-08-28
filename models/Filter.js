@@ -7,4 +7,4 @@ var Filter = function (name, path, handler) {
   return this;
 }
 
-export default Filter;
+export default Filter; // NOT IN USE

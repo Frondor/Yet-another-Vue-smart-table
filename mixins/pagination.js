@@ -1,5 +1,7 @@
+import _ from 'lodash'
+
 export default {
-	
+
 	data () {
 		return {
 			pagination: {}
@@ -8,7 +10,7 @@ export default {
 	methods: {
 		paginate (data) {
 			if (data.length > this.options.perPage) { // requires pagination?
-				return this._.slice(data, 
+				return _.slice(data,
 					this.pagination.startIndex,
 					this.pagination.endIndex + 1
 				);
@@ -47,7 +49,7 @@ export default {
 	        }
 
 	        // create an array of pages to ng-repeat in the pager control
-			var pages = this._.range(startPage, endPage + 1);
+			var pages = _.range(startPage, endPage + 1);
 	 
 	        // return object with all pager properties required by the view
 	        return {

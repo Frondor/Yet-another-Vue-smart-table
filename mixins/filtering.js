@@ -1,3 +1,5 @@
+import _ from 'lodash'
+
 var Filter = function (name, prop, handler, path) {
   this.name = name;
   this.prop = prop;
@@ -18,10 +20,10 @@ export default {
 	},
 	computed: {
     filters () {
-      return this._.groupBy(this.filterList, 'prop');
+      return _.groupBy(this.filterList, 'prop');
     },
     globalFilters () {
-      return this._.groupBy(this.baseFilterList, 'prop');
+      return _.groupBy(this.baseFilterList, 'prop');
     },
 		filterOptions () {
 			return [1,2,3]
@@ -34,10 +36,13 @@ export default {
         return this.sortedData;
       }
 
-			return this._.filter(this.sortedData, (obj) => {
+			return _.filter(this.sortedData, (obj) => {
         //let filterCache = {}; // For nested properties
-        return this._.some(obj, (val, prop) => {
+        return _.some(obj, (val, prop) => {
           //val = valueToString(val, filterCache);
+          if (!this.fields[prop].indexable) {
+            return false;
+          }
           if (typeof val === 'object') {
             if (val.length > -1) { // Array
 
@@ -46,7 +51,7 @@ export default {
               // for (var i = filters.length - 1; i >= 0; i--) {
               //   let filterObj = _.find(filters, ['active', false]);;
               //   if (!filterObj) continue;
-              //   if (this._.isEqual(val, filterObj)) {
+              //   if (_.isEqual(val, filterObj)) {
               //     val = filterObj;
               //     break;
               //   }
@@ -56,13 +61,11 @@ export default {
             val = typeof val === 'number' ? val.toString() : val;
           }
 
-          //if (this.search && val.indexOf(this.search) === -1) {
-          //  return false;
-          //}
-          if (this.fields[prop].indexable) {
-            let filters = this.getFiltersFor(prop); // NOTETOSELF : try to memoize this
-            return this._.every(filters, this._.method('handler', val));
-          }
+          let filters = this.getFiltersFor(prop); // NOTETOSELF : try to memoize this
+          return _.every(filters, (filter) => {
+            console.log(filter.name, filter.handler(val), val)
+            return filter.handler(val);
+          });
 
           return false;
         });
@@ -71,7 +74,7 @@ export default {
 	},
 	methods: {
 		makeFilter (name, prop, handler) {
-      let path = this._.toPath(prop);
+      let path = _.toPath(prop);
       return new Filter(name, prop, handler, path);
 		},
     addFilter (filter) {

@@ -11,7 +11,7 @@
 			</li>
 		</div>
 	</div>
-  <input type="text" class="form-control input-lg" v-model="search" placeholder="Search..." v-if="searchForm" v-autofocus>
+  <input type="text" class="form-control no-margin" v-model="search" placeholder="Search..." v-if="searchForm" v-autofocus>
 	<div class="col-xs-12 col-md-12">
 		<div class="list-inline list-group" v-if="hasFilters">
 			<li>
@@ -80,6 +80,7 @@
 </template>
 
 <script>
+import _ from 'lodash'
 import orderingMixin from './mixins/ordering'
 import filteringMixin from './mixins/filtering'
 import paginationMixin from './mixins/pagination'
@@ -126,14 +127,13 @@ export default {
 		},
     fields () {
       let columns = {};
-      this._.each(this.columns, (column) => {
-        columns[column.name] = this._.merge({
+      _.each(this.columns, (column) => {
+        columns[column.name] = _.merge({
           label: column.label ? column.label : column.name,
           sortable: true,
           indexable: true
         }, column);
       });
-      console.log(columns);
       return columns;
     }
 	},
@@ -142,7 +142,7 @@ export default {
 			let index = this.checkedItems.indexOf(value);
 
 			if (value === undefined) { // toggle all
-				this.checkedItems = this.checkedItems.length ? [] : this._.range(0, this.data.length);
+				this.checkedItems = this.checkedItems.length ? [] : _.range(0, this.data.length);
 				return;
 			}
 

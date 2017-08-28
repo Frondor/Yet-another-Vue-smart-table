@@ -1,3 +1,5 @@
+import _ from 'lodash'
+
 export default {
 	data () {
 		return {
@@ -22,7 +24,7 @@ export default {
       if (!this.hasSortings) {
         return this.data;
       }
-			return this._.orderBy(this.data, this.orderBy, this.orderSort);
+			return _.orderBy(this.data, this.orderBy, this.orderSort);
 		}
 	},
 	methods: {
