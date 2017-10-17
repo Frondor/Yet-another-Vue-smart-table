@@ -1,3 +1,6 @@
+/** NOTETOSELF:
+  * Current state: ¡A MESS!
+  */
 import _ from 'lodash'
 
 var Filter = function (name, prop, handler, path) {
@@ -38,36 +41,23 @@ export default {
 
 			return _.filter(this.sortedData, (obj) => {
         //let filterCache = {}; // For nested properties
-        return _.some(obj, (val, prop) => {
-          //val = valueToString(val, filterCache);
+        return _.every(obj, (val, prop) => {
           if (!this.fields[prop].indexable) {
-            return false;
+            return true;
           }
-          if (typeof val === 'object') {
-            if (val.length > -1) { // Array
-
-            } else { // Object (expensive as fuuck)
-              // TOO DOO
-              // for (var i = filters.length - 1; i >= 0; i--) {
-              //   let filterObj = _.find(filters, ['active', false]);;
-              //   if (!filterObj) continue;
-              //   if (_.isEqual(val, filterObj)) {
-              //     val = filterObj;
-              //     break;
-              //   }
-              // }
-            }
-          } else {
-            val = typeof val === 'number' ? val.toString() : val;
-          }
-
+          val = this.valueToString(val);
+/*
+Hay un problema con la forma en la que los filtros recorren el objeto.
+En en caso del filtro especial searchFilter es necesario hacerlo con _.some sobre TODAS propiedades,
+y los filtros comunes generalmente con ._every PERO sobre las propiedades ESPECIFICAS que
+el filtro use.
+*/
           let filters = this.getFiltersFor(prop); // NOTETOSELF : try to memoize this
           return _.every(filters, (filter) => {
-            console.log(filter.name, filter.handler(val), val)
             return filter.handler(val);
           });
-
-          return false;
+          console.error('This shouldnt ever reach here, probably no filters for this');
+          return true; // in case of no filters matching this property
         });
       });
 		}
@@ -87,6 +77,26 @@ export default {
       filters = globalFilters.length ? filters.concat(globalFilters) : filters;
       filters.concat(this.globalFilters);
       return filters;
+    },
+    valueToString (val) {
+      if (typeof val === 'object') {
+        if (val.length > -1) { // Array
+
+        } else { // Object (expensive as fuuck)
+          // TOO DOO
+          // for (var i = filters.length - 1; i >= 0; i--) {
+          //   let filterObj = _.find(filters, ['active', false]);;
+          //   if (!filterObj) continue;
+          //   if (_.isEqual(val, filterObj)) {
+          //     val = filterObj;
+          //     break;
+          //   }
+          // }
+        }
+      } else {
+        val = typeof val === 'number' ? val.toString() : val;
+      }
+      return val;
     },
 		removeFilter (name) {
       this.$delete(this.filterList, name);
