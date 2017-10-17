@@ -6,7 +6,7 @@
 				<strong>Ordernar por:</strong>
 			</li>
 			<li v-for="(dir, order) in sorting">
-				<a href="#" class="badge badge-primary badge-icon" @click.stop.prevent="removeSorting(order)"><i class="fa fa-times" aria-hidden="true"></i><span>{{order}}</span></a>
+				<a href="#" class="badge badge-primary badge-icon" @click.stop.prevent="removeSorting(order)"><i class="fa fa-times" aria-hidden="true"></i><span>{{fields[order].label}}</span></a>
 			</li>
 		</div>
 	</div>

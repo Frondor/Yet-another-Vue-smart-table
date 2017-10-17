@@ -41,9 +41,10 @@ export default {
 
 			return _.filter(this.sortedData, (obj) => {
         //let filterCache = {}; // For nested properties
-        return _.every(obj, (val, prop) => {
-          if (!this.fields[prop].indexable) {
-            return true;
+        return _.some(obj, (val, prop) => {
+          // prevent checking non-listed and non-indexable columns for filtering
+          if (typeof this.fields[prop] !== 'object' || !this.fields[prop].indexable) {
+            return false;
           }
           val = this.valueToString(val);
 /*
@@ -52,12 +53,17 @@ En en caso del filtro especial searchFilter es necesario hacerlo con _.some sobr
 y los filtros comunes generalmente con ._every PERO sobre las propiedades ESPECIFICAS que
 el filtro use.
 */
+
+/*
+There's a bug with searchs like 'corp' in 'trust corporation' not returning true
+*/
           let filters = this.getFiltersFor(prop); // NOTETOSELF : try to memoize this
-          return _.every(filters, (filter) => {
-            return filter.handler(val);
+
+          return _.every(filters, (filter) => { //_.every applied filter should return true
+            let predicate = filter.handler(val);
+            if (predicate) console.log(val, prop)
+            return predicate
           });
-          console.error('This shouldnt ever reach here, probably no filters for this');
-          return true; // in case of no filters matching this property
         });
       });
 		}
@@ -80,7 +86,7 @@ el filtro use.
     },
     valueToString (val) {
       if (typeof val === 'object') {
-        if (val.length > -1) { // Array
+        if (Array.isArray(val)) {
 
         } else { // Object (expensive as fuuck)
           // TOO DOO
